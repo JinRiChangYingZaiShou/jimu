@@ -8,17 +8,16 @@
 #include <chrono>
 #include <map>
 #include <vector>
+#include <thread>
 
 #include "logger_buffer.h"
-#include "config/parse/config_parse.h"
+#include "config/config_manager.h"
 #include "tools/time_tools.h"
 
 #include "third-party/json/include/nlohmann/json.hpp"
 
 namespace jimu {
 namespace logger {
-
-using Json = nlohmann::json;
 
 class JimuLogger {
     std::string logger_name;
@@ -63,7 +62,7 @@ public:
 
     static JimuLoggerManager* instance();
 
-    uint32_t init(Json &json_config);
+    uint32_t init();
     uint32_t write_log(std::string logger_name, std::string file_name,
         uint32_t line, std::string log_str);
 };

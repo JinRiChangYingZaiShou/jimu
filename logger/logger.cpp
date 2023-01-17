@@ -68,11 +68,9 @@ JimuLoggerManager::JimuLoggerManager() : write_pool_thread_num(0),
 
 JimuLoggerManager::~JimuLoggerManager() {}
 
-uint32_t JimuLoggerManager::init(Json &json_config) {
-    jimu::config::JimuLoggerManagerConfig config_var;
-    if (parse_jimu_logger_manager_config(json_config, config_var)) {
-        return 1;
-    }
+uint32_t JimuLoggerManager::init() {
+    jimu::config::JimuLoggerManagerConfig &config_var =
+        jimu::config::ConfigManager::instance()->logger_manager_config;
 
     if(LoggerBufferFlushPool::instance()
         ->init(config_var.write_pool_thread_num)) {
@@ -123,6 +121,7 @@ uint32_t JimuLoggerManager::write_log(std::string logger_name, std::string file_
 
     log_str_stream << "[" << logger_name << "]-";
     log_str_stream << jimu::tools::get_current_time() << "-";
+    log_str_stream << std::this_thread::get_id() << "-";
     log_str_stream << "[" << file_name << ":" << line << "]:";
     log_str_stream << log_str << "\n";
 

@@ -8,8 +8,6 @@
 namespace jimu {
 namespace config {
 
-using Json = nlohmann::json;
-
 uint32_t parse_jimu_logger_manager_config(Json &json_config,
     JimuLoggerManagerConfig &config_var);
 

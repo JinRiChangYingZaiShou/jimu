@@ -6,6 +6,8 @@
 #include <iostream>
 #include <vector>
 
+#include "config/config_common.h"
+
 namespace jimu {
 namespace config {
 
