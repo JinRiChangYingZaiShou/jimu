@@ -32,3 +32,5 @@
 *.app
 
 output/
+third-party/
+.vscode/

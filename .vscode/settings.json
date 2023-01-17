@@ -51,6 +51,31 @@
         "streambuf": "cpp",
         "thread": "cpp",
         "typeinfo": "cpp",
-        "future": "cpp"
-    }
+        "future": "cpp",
+        "semaphore": "cpp",
+        "charconv": "cpp",
+        "iomanip": "cpp",
+        "variant": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "format": "cpp",
+        "numbers": "cpp",
+        "span": "cpp",
+        "stop_token": "cpp",
+        "regex": "cpp",
+        "any": "cpp",
+        "bitset": "cpp",
+        "codecvt": "cpp",
+        "csignal": "cpp",
+        "forward_list": "cpp",
+        "list": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "unordered_set": "cpp",
+        "shared_mutex": "cpp",
+        "cinttypes": "cpp",
+        "valarray": "cpp",
+        "ranges": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }
