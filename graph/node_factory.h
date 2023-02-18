@@ -6,34 +6,46 @@
 #include <memory>
 
 #include "jimu_node.h"
+#include "../tools/common_tools.h"
 
 namespace jimu {
 namespace graph {
 
-using JimuNodeSharedPtr = std::shared_ptr<JimuNode>;
-
+template<typename GraphDataJimuNodeType>
 class NodeBuilderBase {
 public:
-    virtual JimuNodeSharedPtr build_node() = 0;
+    virtual std::shared_ptr<GraphDataJimuNodeType> build_node() = 0;
 };
 
-template<typename T>
-class NodeBuilder : NodeBuilderBase {
+template<typename NodeType, typename GraphDataJimuNodeType>
+class NodeBuilder : public NodeBuilderBase<GraphDataJimuNodeType> {
 public:
-    virtual JimuNodeSharedPtr build_node() override {
-        return std::make_shared<JimuNode>(new T());
+    NodeBuilder() {}
+    ~NodeBuilder() {}
+
+    virtual std::shared_ptr<GraphDataJimuNodeType>
+        build_node() override {
+        return jimu::tools::convert_ptr<NodeType,
+            GraphDataJimuNodeType>(new NodeType());
     }
 };
 
+template<typename BuilderDataType, typename GraphDataType>
 class NodeFactory {
 
-    using NodeBuilderBaseSharedPtr = std::shared_ptr<NodeBuilderBase>;
+    using JimuNodeBaseType =
+        JimuNode<BuilderDataType, GraphDataType>;
+    using NodeBuilderBaseSharedPtr =
+        std::shared_ptr<NodeBuilderBase<JimuNodeBaseType>>;
+    
+    using NodeBuilderBaseType =
+        NodeBuilderBase<JimuNodeBaseType>;
 
     std::map<std::string, NodeBuilderBaseSharedPtr> _node_factory_map;
 
 public:
-    NodeFactory();
-    ~NodeFactory();
+    NodeFactory() : _node_factory_map() {}
+    ~NodeFactory() {}
 
     template<typename T>
     uint32_t register_node(std::string node_name) {
@@ -41,16 +53,34 @@ public:
             return 1;
         }
 
-        _node_factory_map.insert(node_name,
-            std::make_shared<NodeBuilderBase>(new NodeBuilderBase<T>());
+        jimu::tools::map_insert(_node_factory_map, node_name,
+            jimu::tools::convert_ptr<
+            NodeBuilder<T, JimuNodeBaseType>,
+            NodeBuilderBaseType>(
+                new NodeBuilder<T, JimuNodeBaseType>()));
 
         return 0;
     }
 
     uint32_t build_node_map(std::map<std::string,
-        std::shared_ptr<JimuNode>> &node_map);
+        std::shared_ptr<
+        JimuNode<BuilderDataType, GraphDataType>>> &node_map) {
+        for (auto & [name, node_ptr] : _node_factory_map) {
+            jimu::tools::map_insert(node_map, name, node_ptr->build_node());
+        }
+
+        return 0;
+    }
     
-    uint32_t get_name_vec(std::vector<std::string> & name_vec);
+    uint32_t get_name_vec(std::vector<std::string> & name_vec) {
+        name_vec.clear();
+
+        for (auto & [name, node_ptr] : _node_factory_map) {
+            name_vec.push_back(name);
+        }
+
+        return 0;
+    }
 };
 
 }
