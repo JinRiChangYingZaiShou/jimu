@@ -46,7 +46,7 @@ public:
         return _data_container.builder_data();
     }
 
-    uint32_t set_builder_data(BuilderDataType data) {
+    uint32_t set_builder_data(std::shared_ptr<BuilderDataType> data) {
         return _data_container.set_builder_data(data);
     }
 

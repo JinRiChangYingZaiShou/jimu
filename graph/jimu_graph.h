@@ -61,7 +61,7 @@ public:
     ~JimuGraphBuilder() {}
 
     uint32_t add_edge(std::string pre, std::string suf) {
-        if (pre != suf) {
+        if (pre == suf) {
             return 1;
         }
 
@@ -78,10 +78,12 @@ public:
     uint32_t init(std::shared_ptr<BuilderDataType> data) {
         set_builder_data(data);
 
+        std::cout << "builder init 1" << std::endl;
         if (build_graph()) {
             return 1;
         }
 
+        std::cout << "builder init 2" << std::endl;
         if (check_circle()) {
             return 2;
         }
@@ -130,9 +132,13 @@ private:
         in_deg_vec.resize(node_size, 0);
         out_edge_vec.resize(node_size);
 
+        std::cout << "build_graph_vec:" << edge_vec.size() << std::endl;
+
         for (const auto & edge : edge_vec) {
             auto pre = std::get<0>(edge);
             auto suf = std::get<1>(edge);
+
+            std::cout << pre <<  "," << suf << std::endl;
 
             if (!id_map_sti.count(pre) || !id_map_sti.count(suf)) {
                 return 1;
@@ -144,6 +150,8 @@ private:
 
             auto pre_id = id_map_sti[pre];
             auto suf_id = id_map_sti[suf];
+
+            std::cout << "pre:" << pre_id << ", suf:" << suf_id << std::endl;
 
             in_deg_vec[suf_id] = in_deg_vec[suf_id] + 1;
             out_edge_vec[pre_id].push_back(suf_id);
@@ -289,16 +297,24 @@ private:
         node->process();
 
         if (builder->out_edge_vec[node_id].empty()) {
+            std::cout << "before release" << std::endl;
             seamaphore_map[node_id]->release(1);
+            std::cout << "done end" << std::endl;
             return;
         }
 
+        std::cout << "run_node:" << node_id << " out_vec_size:" << builder->out_edge_vec[node_id].size() << std::endl;
+
         for (auto next_node_id : builder->out_edge_vec[node_id]) {
-            auto start_times = start_count.at(next_node_id).fetch_add(1);
+            auto start_times = start_count.at(next_node_id).fetch_add(1) + 1;
+            std::cout << "run_node start_times:" << start_times << "," << builder->in_deg_vec[next_node_id] << std::endl;
             if (start_times == builder->in_deg_vec[next_node_id]) {
+                std::cout << "run next node:" << next_node_id << std::endl;
                 executer.run(&JimuGraph::run_node, this, next_node_id);
             }
         }
+
+        std::cout << "done" << std::endl;
     }
 
 public:
@@ -340,6 +356,8 @@ public:
 
         std::cout << "node init" << std::endl;
         for (auto & [id, node] : node_id_map) {
+            node->set_builder_data(this->builder_data());
+            node->set_graph_data(this->graph_data());
             node->init();
         }
 

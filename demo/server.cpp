@@ -3,13 +3,19 @@
 
 #include "../graph/jimu_manager.h"
 
+#include "../third-party/httplib/httplib.h"
+
 class BuilderDataTest : public jimu::graph::GraphDataBase {
 public:
+
+    std::atomic<uint32_t> count;
+
     BuilderDataTest() : jimu::graph::GraphDataBase() {}
     ~BuilderDataTest() {}
 
     virtual uint32_t init() override {
         std::cout << "BuilderDataTest init" << std::endl;
+        count.store(0);
         return 0;
     }
 
@@ -68,17 +74,19 @@ public:
     ~StepFirstNode() {}
 
     virtual uint32_t init() override {
-        std::cout << "step first node init" << std::endl;
         return 0;
     }
 
     virtual uint32_t process() override {
-        std::cout << "step first node process" << std::endl;
+        std::vector<uint32_t> vec;
+        for (int i = 100; i > 0; i--) {
+            vec.push_back(i);
+        }
+        std::sort(vec.begin(), vec.end());
         return 0;
     }
 
     virtual uint32_t reset() override {
-        std::cout << "step first node reset" << std::endl;
         return 0;
     }
 };
@@ -89,17 +97,16 @@ public:
     ~StepSecondNode() {}
 
     virtual uint32_t init() override {
-        std::cout << "step second node init" << std::endl;
         return 0;
     }
 
     virtual uint32_t process() override {
-        std::cout << "step second node process" << std::endl;
+        std::cout << "StepSecondNode run" << std::endl;
+        std::cout << "request times:" << builder_data()->count.fetch_add(1) + 1 << std::endl;
         return 0;
     }
 
     virtual uint32_t reset() override {
-        std::cout << "step second node reset" << std::endl;
         return 0;
     }
 };
@@ -107,29 +114,36 @@ public:
 jimu::graph::JimuGraphManager
     <BuilderDataTest, GraphDataTest, GraphAdapterTest> manager_test;
 
-int main() {
+void init() {
     std::cout << "jimu demo test" << std::endl;
 
     manager_test.get_builder()->register_node<StepFirstNode>("StepFirstNode");
-
     std::cout << "add StepFirstNode" << std::endl;
 
     manager_test.get_builder()->register_node<StepSecondNode>("StepSecondNode");
-
     std::cout << "add StepSecondNode" << std::endl;
 
     manager_test.get_builder()->add_edge("StepFirstNode", "StepSecondNode");
-
     std::cout << "add edge" << std::endl;
 
     manager_test.init(4, 1);
-
     std::cout << "maneger init done" << std::endl;
+}
 
-    while (true) {
-        manager_test.process(nullptr, nullptr);
-    }
-    std::cout << "manager process done" << std::endl;
+int main() {
+
+    init();
+
+    httplib::Server svr;
+
+    svr.Get("/test", [](const httplib::Request &req, httplib::Response &res) {
+        std::cout << "get request" << std::endl;
+        manager_test.process(req, res);
+
+        res.set_content("Hello World!", "text/plain");
+    });
+
+    svr.listen("127.0.0.1", 8080);
 
     return 0;
 }

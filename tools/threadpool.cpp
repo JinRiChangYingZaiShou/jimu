@@ -17,12 +17,12 @@ ThreadPool::ThreadPool(size_t poolSize):
                                 return;
                             }
 
-                            if (this->count <= 0) {
-                                --(this->count);
+                            if (count.load() <= 0) {
+                                count.fetch_sub(1);
                                 this->condition.wait(lock);
                             }
                             else {
-                                --(this->count);
+                                count.fetch_sub(1);
                             }
 
                             task = std::move(this->tasks.front());
@@ -30,6 +30,7 @@ ThreadPool::ThreadPool(size_t poolSize):
 
                             lock.unlock();
                         }
+                        std::cout << "run_task" << std::endl;
                         task();
                     }
                 }

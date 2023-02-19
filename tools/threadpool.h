@@ -7,13 +7,14 @@
 #include <future>
 #include <functional>
 #include <condition_variable>
+#include <iostream>
 
 namespace jimu {
 
 class ThreadPool {
 
     using Function=std::function<void()>;
-    int count;
+    std::atomic<int> count;
 
     std::atomic<bool> ret;
 
@@ -39,6 +40,8 @@ void ThreadPool::enqueue(Func&& func,FuncArgs&&... funcArgs){
             std::forward<FuncArgs>(funcArgs)...)
     );
 
+    std::cout << "enqueue" << std::endl;
+
     {
         std::unique_lock<std::mutex> lock(taskMutex);
 
@@ -46,12 +49,12 @@ void ThreadPool::enqueue(Func&& func,FuncArgs&&... funcArgs){
             (*task)();
         });
 
-        if (count < 0) {
-            count++;
+        if (count.load() < 0) {
+            count.fetch_add(1);
             condition.notify_one();
         }
         else{
-            ++count;
+            count.fetch_add(1);
         }
 
         lock.unlock();
