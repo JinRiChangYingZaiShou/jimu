@@ -111,12 +111,25 @@ int main() {
     std::cout << "jimu demo test" << std::endl;
 
     manager_test.get_builder()->register_node<StepFirstNode>("StepFirstNode");
+
+    std::cout << "add StepFirstNode" << std::endl;
+
     manager_test.get_builder()->register_node<StepSecondNode>("StepSecondNode");
+
+    std::cout << "add StepSecondNode" << std::endl;
 
     manager_test.get_builder()->add_edge("StepFirstNode", "StepSecondNode");
 
-    manager_test.init(2, 1);
-    manager_test.process(nullptr, nullptr);
+    std::cout << "add edge" << std::endl;
+
+    manager_test.init(4, 1);
+
+    std::cout << "maneger init done" << std::endl;
+
+    while (true) {
+        manager_test.process(nullptr, nullptr);
+    }
+    std::cout << "manager process done" << std::endl;
 
     return 0;
 }

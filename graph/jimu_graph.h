@@ -112,6 +112,7 @@ public:
 
     std::shared_ptr<
     JimuGraph<BuilderDataType, GraphDataType>> make_graph() {
+        std::cout << "make graph" << std::endl;
         return std::make_shared<
             JimuGraph<BuilderDataType, GraphDataType>>(this);
     }
@@ -253,7 +254,8 @@ private:
         seamaphore_map;
     
     std::shared_ptr<GraphDataContainer<BuilderDataType, GraphDataType> >
-        data_container;
+        data_container =
+            std::make_shared<GraphDataContainer<BuilderDataType, GraphDataType>>();
 
     jimu::tools::Counter<uint32_t> start_count = jimu::tools::Counter<uint32_t>();
 
@@ -301,14 +303,14 @@ private:
 
 public:
 
-    JimuGraph(BuilderType *builder) :
+    explicit JimuGraph(BuilderType *builder) :
         node_map(),
         node_id_map(),
-        data_container(),
         executer(),
         seamaphore_map() {
         this->builder = builder;
         data_container->set_builder_data(builder->builder_data());
+        std::cout << "create graph done" << std::endl;
     }
 
     std::shared_ptr<GraphDataContainer<BuilderDataType, GraphDataType>>
@@ -330,10 +332,13 @@ public:
         uint32_t thread_number) {
         set_graph_data(data);
 
+        std::cout << "builde node map" << std::endl;
+
         if (builder->build_node_map(node_map, node_id_map)) {
             return 1;
         }
 
+        std::cout << "node init" << std::endl;
         for (auto & [id, node] : node_id_map) {
             node->init();
         }
